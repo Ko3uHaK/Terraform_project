@@ -16,24 +16,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Azure CLI
+      - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
-
+          
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
 
       - name: Terraform Init
-        run: terraform init
+        run: |
+          terraform init
 
       - name: Terraform Format
-        run: terraform fmt -check=true -recursive
+        run: |
+          terraform fmt -check=true -recursive
 
       - name: Terraform Validate
-        run: terraform validate
+        run: |
+          terraform validate
 
       - name: Terraform Plan
-        run: terraform plan
-
+        run: |
+          terraform plan
