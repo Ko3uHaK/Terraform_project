@@ -49,7 +49,8 @@ jobs:
   
       - name: Remove Terraform State Lock
         run: |
-              terraform force-unlock -force f19798ba-281d-4c91-bdb1-ca04d8bce412
+              terraform force-unlock -force a496255a-a632-2637-6e96-abfeb85313fb
+        
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
