@@ -46,15 +46,11 @@ jobs:
       - name: Terraform Validate
         run: |
             terraform validate
-  
-      - name: Remove Terraform State Lock
-        run: terraform force-unlock
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: |
-              terraform plan -lock=false -lock-timeout=10m > ${{ github.workspace }}/terraform-plan.txt
-              
+              terraform plan > ${{ github.workspace }}/terraform-plan.txt         
               
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
