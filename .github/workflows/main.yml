@@ -54,6 +54,7 @@ jobs:
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: |
+              export AZURE_CLIENT_ID="${{ secrets.AZURE_CLIENT_ID }}"
               terraform plan 
               
               
