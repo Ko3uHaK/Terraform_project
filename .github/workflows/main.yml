@@ -54,7 +54,7 @@ jobs:
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: |
-              terraform plan -lock=false -lock-timeout=10m > ${{ github.workspace }}/terraform-plan.txt
+              terraform plan 
               
               
       - name: Terraform Apply
