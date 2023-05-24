@@ -11,59 +11,60 @@ on:
 jobs:
   terraform:
     env:
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
     runs-on: ubuntu-latest
-    
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-    
+
       - name: Azure Login
         run: |
           az login --service-principal --username ${{ secrets.AZURE_CLIENT_ID }} --password ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-    
+          az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: az info
         run: az account show
-    
-    
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
-    
+
       - name: Terraform Init
         run: |
           terraform init
-    
+
       - name: Terraform Format
         run: |
           terraform fmt -check=true
         continue-on-error: true
-    
+
       - name: Terraform Validate
         run: |
           terraform validate
-    
+
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
+        id: terraform_plan
         run: |
           terraform plan -lock=false
-          echo "##[set-output name=plan-success]true"
-    
+          echo "::set-output name=plan-success::true"
+
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: terraform_apply
         run: |
           terraform apply --auto-approve
-          echo "##[set-output name=apply-success]true"
-    
+          echo "::set-output name=apply-success::true"
+
       - name: Get Plan Output
         if: github.event_name == 'pull_request'
         run: |
-          echo "The plan was successful: ${{ needs.terraform.outputs.plan-success }}"
-      
+          echo "The plan was successful: ${{ steps.terraform_plan.outputs.plan-success }}"
+
       - name: Get Apply Output
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          echo "The apply was successful: ${{ needs.terraform.outputs.apply-success }}"
+          echo "The apply was successful: ${{ steps.terraform_apply.outputs.apply-success }}"
