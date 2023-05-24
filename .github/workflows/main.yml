@@ -11,7 +11,6 @@ on:
 jobs:
   terraform:
     env:
-      ROOT_PATH: '${{github.workspace}}'
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -38,7 +37,6 @@ jobs:
       - name: Terraform Init
         run: |
             terraform init
-        working-directory: ${{ env.ROOT_PATH }}
   
       - name: Terraform Format
         run: |
@@ -52,8 +50,7 @@ jobs:
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: |
-              terraform plan -lock=false > ${{ github.workspace }}/terraform-plan.txt
-        working-directory: ${{ env.ROOT_PATH }}      
+              terraform plan -lock=false > ${{ github.workspace }}/terraform-plan.txt     
               
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
