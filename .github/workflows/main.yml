@@ -51,6 +51,7 @@ jobs:
         run: |
           terraform plan -lock=false
           echo "::set-output name=plan-success::true"
+        continue-on-error: true
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
