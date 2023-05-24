@@ -49,7 +49,7 @@ jobs:
   
       - name: Remove Terraform State Lock
         run: |
-              terraform force-unlock -force a496255a-a632-2637-6e96-abfeb85313fb
+              terraform force-unlock -force cf42519d-02d1-f6ca-31a7-289edc12966f
         
 
       - name: Terraform Plan
