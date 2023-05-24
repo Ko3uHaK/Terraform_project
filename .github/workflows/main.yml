@@ -26,32 +26,36 @@ jobs:
           az login --service-principal --username ${{ secrets.AZURE_CLIENT_ID }} --password ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
           az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: az info
-        run: az account show
-
+          - name: az info
+          run: az account show
+        
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
-
-      - name: Run Terraform commands
-        id: terraform
+  
+      - name: Terraform Init
         run: |
-          terraform init
-          terraform fmt -check=true || true
-          terraform validate
-          if [[ ${{ github.event_name }} == 'pull_request' ]]; then
-            terraform plan -lock=false
-            echo "plan-success=true" >> $GITHUB_ENV
-          elif [[ ${{ github.event_name }} == 'push' && ${{ github.ref }} == 'refs/heads/main' ]]; then
-            terraform apply --auto-approve
-            echo "apply-success=true" >> $GITHUB_ENV
-          fi
-
-      - name: Get Plan Output
+            terraform init
+  
+      - name: Terraform Format
+        run: |
+            terraform fmt -check=true
+        continue-on-error: true
+  
+      - name: Terraform Validate
+        run: |
+            terraform validate
+  
+      - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: |
-          echo "The plan was successful: ${{ steps.terraform.outputs.plan-success }}"
-
-      - name: Get Apply Output
+              terraform plan -lock=false > terraform-plan.txt
+              echo "::set-env name=PLAN_SUCCESS::true"
+  
+      - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          echo "The apply was successful: ${{ steps.terraform.outputs.apply-success }}"
+              terraform apply --auto-approve
+  
+      - name: Set Output Environment File
+        run: |
+            echo "PLAN_SUCCESS=${{ env.PLAN_SUCCESS }}" >> $GITHUB_ENV
