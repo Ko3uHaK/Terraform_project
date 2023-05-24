@@ -48,7 +48,8 @@ jobs:
             terraform validate
   
       - name: Remove Terraform State Lock
-        run: terraform force-unlock a4e71fec-0040-e994-d4c3-e6e727e5fa90
+        run: |
+         echo "yes" | terraform force-unlock a4e71fec-0040-e994-d4c3-e6e727e5fa90
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
