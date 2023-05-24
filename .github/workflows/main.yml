@@ -47,6 +47,9 @@ jobs:
         run: |
             terraform validate
   
+      - name: Remove Terraform State Lock
+        run: terraform force-unlock
+
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: |
