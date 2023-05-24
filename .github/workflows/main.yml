@@ -52,8 +52,7 @@ jobs:
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: |
-              terraform plan -lock=false > terraform-plan.txt
-              echo "::set-env name=PLAN_SUCCESS::true"
+              terraform plan -lock=false > ${{ github.workspace }}/terraform-plan.txt
         working-directory: ${{ env.ROOT_PATH }}      
               
       - name: Terraform Apply
