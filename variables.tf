@@ -7,15 +7,15 @@ variable "resource_group_name" {
   description = "The name of the resource group."
   default     = "rg-eastus-ci"
 }
-variable "az_subscription_id" {
+variable "AZURE_SUBSCRIPTION_ID" {
 
 }
-variable "az_tenant_id" {
+variable "AZURE_TENANT_ID" {
 
 }
-variable "az_client_id" {
+variable "AZURE_CLIENT_ID" {
 
 }
-variable "az_client_secret" {
+variable "AZURE_CLIENT_SECRET" {
 
 }

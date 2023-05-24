@@ -46,7 +46,7 @@ jobs:
             echo "apply-success=true" >> $GITHUB_ENV
           fi
 
-      - name: gGet Plan Output
+      - name: Get Plan Output
         if: github.event_name == 'pull_request'
         run: |
           echo "The plan was successful: ${{ steps.terraform.outputs.plan-success }}"
