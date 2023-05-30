@@ -34,12 +34,16 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
   
-      - name: Extract State Lock ID
+      - name: Check Terraform State Lock
         id: state-lock
         run: |
-          lock_info=$(terraform state lock-info tests/terraform.tfstate)
-          state_lock_id=$(echo "$lock_info" | awk '/ID:/ {print $2}')
-          echo "STATE_LOCK_ID=$state_lock_id" >> $GITHUB_ENV
+          lock_info=$(terraform state list -state tests/terraform.tfstate.lock)
+          if [[ -n "$lock_info" ]]; then
+            state_lock_id=$(echo "$lock_info" | awk -F'[/:]' '{print $4}')
+            echo "STATE_LOCK_ID=$state_lock_id" >> $GITHUB_ENV
+          else
+            echo "::set-output name=state_lock_exists::false"
+          fi
 
       - name: Terraform Init
         run: |
@@ -61,6 +65,7 @@ jobs:
           else
             echo "No state lock found. Skipping removal."
           fi
+        if: steps.state-lock.outputs.state_lock_exists == 'true'
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
