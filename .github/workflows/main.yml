@@ -47,18 +47,13 @@ jobs:
         run: |
             terraform validate
   
-      - name: Remove Terraform State Lock
-        run: |
-              terraform force-unlock -force f9effe8b-3f6c-7872-9716-86b2fa0e4e9d
+      # - name: Remove Terraform State Lock
+      #   run: |
+      #         terraform force-unlock -force f9effe8b-3f6c-7872-9716-86b2fa0e4e9d
         
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
-        env:
-            AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-            AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-            AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-            AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         run: |
                 terraform plan -var "AZURE_CLIENT_ID=${{ env.AZURE_CLIENT_ID }}" \
                                -var "AZURE_CLIENT_SECRET=${{ env.AZURE_CLIENT_SECRET }}" \
@@ -69,7 +64,3 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
               terraform apply --auto-approve
-  
-      - name: Set Output Environment File
-        run: |
-            echo "PLAN_SUCCESS=${{ env.PLAN_SUCCESS }}" >> $GITHUB_ENV
