@@ -47,9 +47,9 @@ jobs:
         run: |
             terraform validate
   
-      # - name: Remove Terraform State Lock
-      #   run: |
-      #         terraform force-unlock -force f9effe8b-3f6c-7872-9716-86b2fa0e4e9d
+      - name: Remove Terraform State Lock
+        run: |
+              terraform force-unlock -force fc1d3816-6702-9b6c-886e-5074419aa246
         
 
       - name: Terraform Plan
