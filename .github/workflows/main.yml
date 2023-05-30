@@ -49,7 +49,11 @@ jobs:
   
       - name: Remove Terraform State Lock
         run: |
-              terraform force-unlock -force fc1d3816-6702-9b6c-886e-5074419aa246
+          if terraform state lock show >/dev/null 2>&1; then
+          terraform force-unlock -force fc1d3816-6702-9b6c-886e-5074419aa246
+          else
+          echo "No state lock found. Skipping removal."
+          fi
         
 
       - name: Terraform Plan
