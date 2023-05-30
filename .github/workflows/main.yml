@@ -36,39 +36,46 @@ jobs:
   
       - name: Terraform Init
         run: |
-            terraform init
-  
+          terraform init
+
       - name: Terraform Format
         run: |
-            terraform fmt -check=true
+          terraform fmt -check=true
         continue-on-error: true
-  
+
       - name: Terraform Validate
         run: |
-            terraform validate
-  
-      - name: Remove Terraform State Lock
+          terraform validate
+
+      - name: Check State Lock
+        id: check_lock
         run: |
-          if terraform state lock show >/dev/null 2>&1; then
-          terraform force-unlock -force fc1d3816-6702-9b6c-886e-5074419aa246
-          else
-          echo "No state lock found. Skipping removal."
-          fi
-        
+            if [[ -f "tf.lock" ]]; then
+              lock_id=$(terraform state lock-info -state=tf.lock | awk '/ID:/{print $2}')
+              echo "::set-output name=lock_id::${lock_id}"
+            else
+              echo "::set-output name=lock_id::"
+            fi
+        continue-on-error: true
+  
+      - name: Unlock State
+        if: steps.check_lock.outputs.lock_id != ''
+        run: |
+            terraform force-unlock -force ${{ steps.check_lock.outputs.lock_id }}
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: |
-              terraform plan -var "AZURE_CLIENT_ID=${{ env.AZURE_CLIENT_ID }}" \
-              -var "AZURE_CLIENT_SECRET=${{ env.AZURE_CLIENT_SECRET }}" \
-              -var "AZURE_SUBSCRIPTION_ID=${{ env.AZURE_SUBSCRIPTION_ID }}" \
-              -var "AZURE_TENANT_ID=${{ env.AZURE_TENANT_ID }}"
+          terraform plan -var "AZURE_CLIENT_ID=${{ env.ARM_CLIENT_ID }}" \
+            -var "AZURE_CLIENT_SECRET=${{ env.ARM_CLIENT_SECRET }}" \
+            -var "AZURE_SUBSCRIPTION_ID=${{ env.ARM_SUBSCRIPTION_ID }}" \
+            -var "AZURE_TENANT_ID=${{ env.ARM_TENANT_ID }}"
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-                terraform apply --auto-approve \
-                  -var "ARM_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" \
-                  -var "ARM_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}" \
-                  -var "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-                  -var "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}"
+          terraform apply --auto-approve \
+            -var "AZURE_CLIENT_ID=${{ env.ARM_CLIENT_ID }}" \
+            -var "AZURE_CLIENT_SECRET=${{ env.ARM_CLIENT_SECRET }}" \
+            -var "AZURE_SUBSCRIPTION_ID=${{ env.ARM_SUBSCRIPTION_ID }}" \
+            -var "AZURE_TENANT_ID=${{ env.ARM_TENANT_ID }}"
