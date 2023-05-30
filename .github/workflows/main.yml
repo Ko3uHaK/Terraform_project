@@ -50,8 +50,9 @@ jobs:
       - name: Check State Lock
         id: check_lock
         run: |
-            lock_info=$(terraform state lock-info)
+            lock_info=$(terraform state lock-info) || echo "::set-output name=lock_info::"
             echo "::set-output name=has_lock::$(if [[ -n \"$lock_info\" ]]; then echo \"true\"; else echo \"false\"; fi)"
+        continue-on-error: true
   
       - name: Remove Terraform State Lock
         run: |
