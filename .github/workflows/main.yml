@@ -34,41 +34,48 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
   
+      - name: Extract State Lock ID
+        id: state-lock
+        run: |
+          lock_info=$(terraform state lock-info tests/terraform.tfstate)
+          state_lock_id=$(echo "$lock_info" | awk '/ID:/ {print $2}')
+          echo "STATE_LOCK_ID=$state_lock_id" >> $GITHUB_ENV
+
       - name: Terraform Init
         run: |
-            terraform init
-  
+          terraform init
+
       - name: Terraform Format
         run: |
-            terraform fmt -check=true
+          terraform fmt -check=true
         continue-on-error: true
-  
+
       - name: Terraform Validate
         run: |
-            terraform validate
-  
+          terraform validate
+
       - name: Remove Terraform State Lock
         run: |
-          if terraform state lock show >/dev/null 2>&1; then
-          terraform force-unlock -force fc1d3816-6702-9b6c-886e-5074419aa246
+          if [[ -n "${{ env.STATE_LOCK_ID }}" ]]; then
+            terraform force-unlock -force "${{ env.STATE_LOCK_ID }}"
           else
-          echo "No state lock found. Skipping removal."
+            echo "No state lock found. Skipping removal."
           fi
-        
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: |
-              terraform plan -var "AZURE_CLIENT_ID=${{ env.AZURE_CLIENT_ID }}" \
-              -var "AZURE_CLIENT_SECRET=${{ env.AZURE_CLIENT_SECRET }}" \
-              -var "AZURE_SUBSCRIPTION_ID=${{ env.AZURE_SUBSCRIPTION_ID }}" \
-              -var "AZURE_TENANT_ID=${{ env.AZURE_TENANT_ID }}"
+          terraform plan -var "AZURE_CLIENT_ID=${{ env.ARM_CLIENT_ID }}" \
+            -var "AZURE_CLIENT_SECRET=${{ env.ARM_CLIENT_SECRET }}" \
+            -var "AZURE_SUBSCRIPTION_ID=${{ env.ARM_SUBSCRIPTION_ID }}" \
+            -var "AZURE_TENANT_ID=${{ env.ARM_TENANT_ID }}" \
+            -state-lock-id "${{ env.STATE_LOCK_ID }}"
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-                terraform apply --auto-approve \
-                  -var "AZURE_CLIENT_ID=${{ env.AZURE_CLIENT_ID }}" \
-                  -var "AZURE_CLIENT_SECRET=${{ env.AZURE_CLIENT_SECRET }}" \
-                  -var "AZURE_SUBSCRIPTION_ID=${{ env.AZURE_SUBSCRIPTION_ID }}" \
-                  -var "AZURE_TENANT_ID=${{ env.AZURE_TENANT_ID }}"
+          terraform apply --auto-approve \
+            -var "AZURE_CLIENT_ID=${{ env.ARM_CLIENT_ID }}" \
+            -var "AZURE_CLIENT_SECRET=${{ env.ARM_CLIENT_SECRET }}" \
+            -var "AZURE_SUBSCRIPTION_ID=${{ env.ARM_SUBSCRIPTION_ID }}" \
+            -var "AZURE_TENANT_ID=${{ env.ARM_TENANT_ID }}"
