@@ -47,10 +47,21 @@ jobs:
         run: |
           terraform validate
 
+      - name: Check State Lock
+        id: check_lock
+        run: |
+            lock_info=$(terraform state lock-info)
+            echo "::set-output name=has_lock::$(if [[ -n \"$lock_info\" ]]; then echo \"true\"; else echo \"false\"; fi)"
+  
       - name: Remove Terraform State Lock
         run: |
-          terraform force-unlock -force -lock=false
-        if: github.event_name == 'pull_request' || github.event_name == 'push' && github.ref == 'refs/heads/main'
+            if [[ "${{ steps.check_lock.outputs.has_lock }}" == "true" ]]; then
+              lock_id=$(terraform state lock-info -json | jq -r '.ID')
+              terraform force-unlock -force "$lock_id"
+            else
+              echo "No state lock found. Skipping removal."
+            fi
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
