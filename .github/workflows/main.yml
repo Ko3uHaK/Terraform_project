@@ -49,26 +49,26 @@ jobs:
   
       - name: Remove Terraform State Lock
         run: |
-              terraform force-unlock -force 67fb49ae-f66d-815b-bf1a-22a7147788c4
+              terraform force-unlock -force f9effe8b-3f6c-7872-9716-86b2fa0e4e9d
         
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
+        env:
+            AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+            AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+            AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+            AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         run: |
-              terraform plan
-              echo "::set-env name=ARM_CLIENT_ID::${{ secrets.AZURE_CLIENT_ID }}"
-              echo "::set-env name=ARM_CLIENT_SECRET::${{ secrets.AZURE_CLIENT_SECRET }}"
-              echo "::set-env name=ARM_SUBSCRIPTION_ID::${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-              echo "::set-env name=ARM_TENANT_ID::${{ secrets.AZURE_TENANT_ID }}"
+                terraform plan -var "AZURE_CLIENT_ID=${{ env.AZURE_CLIENT_ID }}" \
+                               -var "AZURE_CLIENT_SECRET=${{ env.AZURE_CLIENT_SECRET }}" \
+                               -var "AZURE_SUBSCRIPTION_ID=${{ env.AZURE_SUBSCRIPTION_ID }}" \
+                               -var "AZURE_TENANT_ID=${{ env.AZURE_TENANT_ID }}"
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-              terraform apply --auto-approve \
-              -var "ARM_CLIENT_ID=${{ env.ARM_CLIENT_ID }}" \
-              -var "ARM_CLIENT_SECRET=${{ env.ARM_CLIENT_SECRET }}" \
-              -var "ARM_SUBSCRIPTION_ID=${{ env.ARM_SUBSCRIPTION_ID }}" \
-              -var "ARM_TENANT_ID=${{ env.ARM_TENANT_ID }}"
+              terraform apply --auto-approve
   
       - name: Set Output Environment File
         run: |
