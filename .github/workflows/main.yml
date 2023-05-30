@@ -56,17 +56,19 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
               terraform plan
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }} 
-              
-              
+              echo "::set-env name=ARM_CLIENT_ID::${{ secrets.AZURE_CLIENT_ID }}"
+              echo "::set-env name=ARM_CLIENT_SECRET::${{ secrets.AZURE_CLIENT_SECRET }}"
+              echo "::set-env name=ARM_SUBSCRIPTION_ID::${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+              echo "::set-env name=ARM_TENANT_ID::${{ secrets.AZURE_TENANT_ID }}"
+
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-              terraform apply --auto-approve
+              terraform apply --auto-approve \
+              -var "ARM_CLIENT_ID=${{ env.ARM_CLIENT_ID }}" \
+              -var "ARM_CLIENT_SECRET=${{ env.ARM_CLIENT_SECRET }}" \
+              -var "ARM_SUBSCRIPTION_ID=${{ env.ARM_SUBSCRIPTION_ID }}" \
+              -var "ARM_TENANT_ID=${{ env.ARM_TENANT_ID }}"
   
       - name: Set Output Environment File
         run: |
