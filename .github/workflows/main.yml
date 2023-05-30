@@ -63,6 +63,7 @@ jobs:
         if: steps.check_lock.outputs.lock_id != ''
         run: |
             terraform force-unlock -force ${{ steps.check_lock.outputs.lock_id }}
+        continue-on-error: true
 
       - name: Remove Terraform State Lock
         run: |
