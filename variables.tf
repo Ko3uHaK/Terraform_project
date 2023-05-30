@@ -10,13 +10,13 @@ variable "resource_group_name" {
 variable "virtual_network_name" {
   description = "Name of the virtual network"
   type        = string
-  default = "vn-eastus-ci"
+  default     = "vn-eastus-ci"
 }
 
 variable "address_space" {
   description = "Address space of the virtual network"
   type        = list(string)
-  default = [ "10.0.0.0/27" ]
+  default     = ["10.0.0.0/27"]
 }
 variable "AZURE_SUBSCRIPTION_ID" {
 
