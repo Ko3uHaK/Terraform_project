@@ -72,6 +72,7 @@ jobs:
               else
                 echo "No state lock found. Skipping removal."
               fi
+        continue-on-error: true
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
