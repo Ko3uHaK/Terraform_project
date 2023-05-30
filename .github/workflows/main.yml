@@ -50,19 +50,18 @@ jobs:
       - name: Check State Lock
         id: check_lock
         run: |
-            lock_info=$(terraform state lock-info) || echo "::set-output name=lock_info::"
-            echo "::set-output name=has_lock::$(if [[ -n \"$lock_info\" ]]; then echo \"true\"; else echo \"false\"; fi)"
+            if [[ -f "tf.lock" ]]; then
+              lock_id=$(terraform state lock-info -state=tf.lock | awk '/ID:/{print $2}')
+              echo "::set-output name=lock_id::${lock_id}"
+            else
+              echo "::set-output name=lock_id::"
+            fi
         continue-on-error: true
   
-      - name: Remove Terraform State Lock
+      - name: Unlock State
+        if: steps.check_lock.outputs.lock_id != ''
         run: |
-            if [[ "${{ steps.check_lock.outputs.has_lock }}" == "true" ]]; then
-              lock_id=$(terraform state lock-info -json | jq -r '.ID')
-              terraform force-unlock -force "$lock_id"
-            else
-              echo "No state lock found. Skipping removal."
-            fi
-        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+            terraform force-unlock -force ${{ steps.check_lock.outputs.lock_id }}
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
